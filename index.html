@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hockey Stats Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1e2a3a;
+      --surface3: #253347;
+      --accent-blue: #2563eb;
+      --accent-red: #dc2626;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --home-color: #3b82f6;
+      --away-color: #ef4444;
+      --border: #1e3050;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    #app {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    #sidebar-header {
+      padding: 12px 14px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #sidebar-header span.puck { font-size: 20px; }
+
+    #sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    #sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    #sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    #sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 14px 4px;
+    }
+
+    /* ── TEAM PANELS ── */
+    .team-panel { border-bottom: 1px solid var(--border); }
+
+    .team-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--surface2);
+    }
+
+    .team-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .team-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .team-name-input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed var(--text-muted);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      width: 100px;
+      outline: none;
+    }
+
+    .btn-add {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface3);
+      color: var(--text);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-add:hover { background: var(--accent-blue); border-color: var(--accent-blue); }
+
+    .roster-list { padding: 4px 0; min-height: 10px; }
+
+    .player-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: background .1s;
+      border-left: 3px solid transparent;
+    }
+    .player-item:hover { background: var(--surface2); }
+    .player-item.selected { background: var(--surface3); }
+    .player-item.selected.home { border-left-color: var(--home-color); }
+    .player-item.selected.away { border-left-color: var(--away-color); }
+
+    .jersey-badge {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .player-name {
+      flex: 1;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .1s; }
+    .player-item:hover .player-actions { opacity: 1; }
+
+    .icon-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: 12px; padding: 2px;
+      border-radius: 3px; transition: color .1s, background .1s;
+      line-height: 1;
+    }
+    .icon-btn:hover { color: var(--text); background: var(--surface); }
+    .icon-btn.danger:hover { color: var(--accent-red); }
+
+    .inline-form {
+      display: flex; gap: 4px; align-items: center;
+      padding: 4px 14px;
+      background: var(--surface3);
+    }
+    .inline-form input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 3px 6px;
+      font-size: 12px;
+      outline: none;
+    }
+    .inline-form input:focus { border-color: var(--accent-blue); }
+    .inline-form input.num { width: 42px; }
+    .inline-form input.name { flex: 1; }
+    .btn-confirm { background: var(--accent-blue); border: none; color: #fff; border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 11px; }
+    .btn-cancel { background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 4px; padding: 3px 6px; cursor: pointer; font-size: 11px; }
+
+    /* ── STAT SELECTOR ── */
+    #stat-selector { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      padding: 4px 14px;
+    }
+
+    .stat-btn {
+      padding: 6px 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background .12s, border-color .12s, transform .1s;
+      line-height: 1.3;
+    }
+    .stat-btn:hover { background: var(--surface3); transform: translateY(-1px); }
+    .stat-btn.active { background: #1d3a6e; border-color: var(--accent-blue); color: #93c5fd; box-shadow: 0 0 0 1px var(--accent-blue); }
+
+    .stat-btn .stat-icon { display: block; font-size: 14px; margin-bottom: 2px; }
+
+    /* ── STAT FEED ── */
+    #stat-feed {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #feed-list {
+      list-style: none;
+      overflow-y: auto;
+      flex: 1;
+    }
+    #feed-list::-webkit-scrollbar { width: 4px; }
+    #feed-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .feed-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px 14px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeIn .2s ease;
+    }
+    .feed-item:hover { background: var(--surface2); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    .feed-row1 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .feed-stat-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 3px;
+      background: var(--surface3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap;
+    }
+
+    .feed-player { font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .feed-time { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+
+    .feed-row2 { font-size: 10px; color: var(--text-muted); }
+
+    .zone-d { color: #f87171; }
+    .zone-n { color: #94a3b8; }
+    .zone-o { color: #34d399; }
+
+    .feed-empty {
+      padding: 20px 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* ── RINK AREA ── */
+    #rink-area {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    #status-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      min-height: 40px;
+      flex-wrap: wrap;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+
+    .status-arrow { color: var(--text-muted); }
+    .status-hint { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+
+    #rink-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      min-height: 0;
+    }
+
+    #rink-svg {
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      cursor: crosshair;
+      filter: drop-shadow(0 0 20px rgba(37,99,235,.15));
+    }
+
+    #rink-svg .rink-deco { pointer-events: none; }
+    #ice-click-layer { pointer-events: all; fill: transparent; }
+    #ice-click-layer.ready { cursor: crosshair; }
+    #ice-click-layer.not-ready { cursor: not-allowed; }
+
+    .stat-marker { pointer-events: all; cursor: pointer; transition: opacity .15s; }
+    .stat-marker:hover { opacity: .8; }
+
+    /* ── MODAL ── */
+    #modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.open { display: flex; }
+
+    #modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 480px;
+      max-width: 95vw;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+
+    #modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #modal-title { font-size: 16px; font-weight: 700; }
+
+    #modal-close {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    }
+    #modal-close:hover { color: var(--text); background: var(--surface2); }
+
+    #modal-body { overflow-y: auto; padding: 16px 20px; flex: 1; }
+
+    .stat-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .summary-card .sc-num { font-size: 22px; font-weight: 700; }
+    .summary-card .sc-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+    .modal-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .modal-table th {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .modal-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-table tr:last-child td { border-bottom: none; }
+    .modal-table tr:hover td { background: var(--surface2); }
+
+    .no-stats { color: var(--text-muted); text-align: center; padding: 24px; font-size: 13px; }
+
+    /* ── CONTROLS BAR ── */
+    #controls-bar {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      align-items: center;
+    }
+
+    .ctrl-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .ctrl-btn:hover { color: var(--text); background: var(--surface3); }
+    .ctrl-btn.danger:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+    #event-count { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <span class="puck">🏒</span> Hockey Stats Tracker
+    </div>
+    <div id="sidebar-scroll">
+      <!-- HOME TEAM -->
+      <div class="team-panel" id="panel-home">
+        <div class="team-header">
+          <div class="team-label">
+            <div class="team-dot" style="background:var(--home-color)"></div>
+            <input class="team-name-input" id="home-team-name" value="Home" maxlength="16" />
+          </div>
+          <button class="btn-add" onclick="startAddPlayer('home')">+ Add</button>
+        </div>
+        <div id="add-form-home"></div>
+        <div class="roster-list" id="roster-home"></div>
+      </div>
+      <!-- AWAY TEAM -->
+      <div class="team-panel" id="panel-away">
+        <div class="team-header">
+          <div class="team-label">
+            <div class="team-dot" style="background:var(--away-color)"></div>
+            <input class="team-name-input" id="away-team-name" value="Away" maxlength="16" />
+          </div>
+          <button class="btn-add" onclick="startAddPlayer('away')">+ Add</button>
+        </div>
+        <div id="add-form-away"></div>
+        <div class="roster-list" id="roster-away"></div>
+      </div>
+      <!-- STAT SELECTOR -->
+      <div id="stat-selector">
+        <div class="section-title">Stat Type</div>
+        <div class="stat-grid" id="stat-grid"></div>
+      </div>
+      <!-- FEED -->
+      <div id="stat-feed">
+        <div class="section-title">Event Log</div>
+        <ul id="feed-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RINK AREA -->
+  <div id="rink-area">
+    <div id="status-strip"></div>
+    <div id="rink-wrap">
+      <svg id="rink-svg" viewBox="0 0 600 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <!-- ICE SURFACE -->
+        <g class="rink-deco">
+          <!-- Background -->
+          <rect x="0" y="0" width="600" height="280" fill="#0a0e1a"/>
+          <!-- Ice surface -->
+          <rect x="8" y="8" width="584" height="264" rx="26" fill="#c8dff0" opacity="0.08"/>
+          <!-- Rink outline -->
+          <rect x="8" y="8" width="584" height="264" rx="26" fill="none" stroke="#b0c8e0" stroke-width="3" opacity="0.5"/>
+
+          <!-- GOAL LINES -->
+          <line x1="62" y1="20" x2="62" y2="260" stroke="#cc0000" stroke-width="2" opacity="0.85"/>
+          <line x1="538" y1="20" x2="538" y2="260" stroke="#cc0000" stroke-width="2" opacity="0.85"/>
+
+          <!-- BLUE LINES -->
+          <line x1="172" y1="8" x2="172" y2="272" stroke="#4488ff" stroke-width="4" opacity="0.7"/>
+          <line x1="428" y1="8" x2="428" y2="272" stroke="#4488ff" stroke-width="4" opacity="0.7"/>
+
+          <!-- CENTER RED LINE -->
+          <line x1="300" y1="8" x2="300" y2="272" stroke="#cc0000" stroke-width="3" stroke-dasharray="10 6" opacity="0.7"/>
+
+          <!-- CENTER CIRCLE -->
+          <circle cx="300" cy="140" r="46" fill="none" stroke="#cc0000" stroke-width="2" opacity="0.7"/>
+          <circle cx="300" cy="140" r="3" fill="#cc0000" opacity="0.9"/>
+
+          <!-- CENTER FACE-OFF HASH MARKS -->
+          <line x1="290" y1="134" x2="290" y2="146" stroke="#cc0000" stroke-width="1.5" opacity="0.6"/>
+          <line x1="310" y1="134" x2="310" y2="146" stroke="#cc0000" stroke-width="1.5" opacity="0.6"/>
+
+          <!-- LEFT END FACE-OFF CIRCLES -->
+          <circle cx="62" cy="94" r="30" fill="none" stroke="#cc0000" stroke-width="2" opacity="0.6"/>
+          <circle cx="62" cy="94" r="3" fill="#cc0000" opacity="0.9"/>
+          <circle cx="62" cy="186" r="30" fill="none" stroke="#cc0000" stroke-width="2" opacity="0.6"/>
+          <circle cx="62" cy="186" r="3" fill="#cc0000" opacity="0.9"/>
+          <!-- Hash marks left circles -->
+          <line x1="52" y1="88" x2="52" y2="100" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+          <line x1="72" y1="88" x2="72" y2="100" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+          <line x1="52" y1="180" x2="52" y2="192" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+          <line x1="72" y1="180" x2="72" y2="192" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+
+          <!-- RIGHT END FACE-OFF CIRCLES -->
+          <circle cx="538" cy="94" r="30" fill="none" stroke="#cc0000" stroke-width="2" opacity="0.6"/>
+          <circle cx="538" cy="94" r="3" fill="#cc0000" opacity="0.9"/>
+          <circle cx="538" cy="186" r="30" fill="none" stroke="#cc0000" stroke-width="2" opacity="0.6"/>
+          <circle cx="538" cy="186" r="3" fill="#cc0000" opacity="0.9"/>
+          <!-- Hash marks right circles -->
+          <line x1="528" y1="88" x2="528" y2="100" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+          <line x1="548" y1="88" x2="548" y2="100" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+          <line x1="528" y1="180" x2="528" y2="192" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+          <line x1="548" y1="180" x2="548" y2="192" stroke="#cc0000" stroke-width="1.5" opacity="0.5"/>
+
+          <!-- NEUTRAL ZONE FACE-OFF DOTS -->
+          <circle cx="172" cy="94" r="3" fill="#cc0000" opacity="0.8"/>
+          <circle cx="172" cy="186" r="3" fill="#cc0000" opacity="0.8"/>
+          <circle cx="428" cy="94" r="3" fill="#cc0000" opacity="0.8"/>
+          <circle cx="428" cy="186" r="3" fill="#cc0000" opacity="0.8"/>
+
+          <!-- LEFT GOAL CREASE -->
+          <path d="M 62 118 A 22 22 0 0 1 62 162" fill="none" stroke="#4488ff" stroke-width="1.5" opacity="0.7"/>
+          <line x1="62" y1="118" x2="44" y2="118" stroke="#4488ff" stroke-width="1.5" opacity="0.7"/>
+          <line x1="62" y1="162" x2="44" y2="162" stroke="#4488ff" stroke-width="1.5" opacity="0.7"/>
+          <path d="M 62 118 L 44 118 L 44 162 L 62 162 A 22 22 0 0 0 62 118" fill="#2244aa" opacity="0.18"/>
+
+          <!-- RIGHT GOAL CREASE -->
+          <path d="M 538 118 A 22 22 0 0 0 538 162" fill="none" stroke="#4488ff" stroke-width="1.5" opacity="0.7"/>
+          <line x1="538" y1="118" x2="556" y2="118" stroke="#4488ff" stroke-width="1.5" opacity="0.7"/>
+          <line x1="538" y1="162" x2="556" y2="162" stroke="#4488ff" stroke-width="1.5" opacity="0.7"/>
+          <path d="M 538 118 L 556 118 L 556 162 L 538 162 A 22 22 0 0 1 538 118" fill="#2244aa" opacity="0.18"/>
+
+          <!-- LEFT NET -->
+          <rect x="34" y="124" width="28" height="32" rx="2" fill="#1a1a2e" stroke="#aaaacc" stroke-width="1.5" opacity="0.9"/>
+          <!-- Net crosshatch -->
+          <line x1="40" y1="124" x2="40" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="46" y1="124" x2="46" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="52" y1="124" x2="52" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="58" y1="124" x2="58" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="34" y1="130" x2="62" y2="130" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="34" y1="136" x2="62" y2="136" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="34" y1="142" x2="62" y2="142" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="34" y1="148" x2="62" y2="148" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+
+          <!-- RIGHT NET -->
+          <rect x="538" y="124" width="28" height="32" rx="2" fill="#1a1a2e" stroke="#aaaacc" stroke-width="1.5" opacity="0.9"/>
+          <line x1="544" y1="124" x2="544" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="550" y1="124" x2="550" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="556" y1="124" x2="556" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="562" y1="124" x2="562" y2="156" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="538" y1="130" x2="566" y2="130" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="538" y1="136" x2="566" y2="136" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="538" y1="142" x2="566" y2="142" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+          <line x1="538" y1="148" x2="566" y2="148" stroke="#555577" stroke-width=".5" opacity="0.6"/>
+
+          <!-- REFEREE CREASE -->
+          <path d="M 285 272 A 15 15 0 0 1 315 272" fill="none" stroke="#cc0000" stroke-width="1.5" opacity="0.4"/>
+
+          <!-- ZONE LABELS -->
+          <text x="117" y="275" text-anchor="middle" fill="#4488ff" font-size="8" opacity="0.4" font-family="system-ui">DEF ZONE</text>
+          <text x="300" y="275" text-anchor="middle" fill="#94a3b8" font-size="8" opacity="0.4" font-family="system-ui">NEUTRAL</text>
+          <text x="483" y="275" text-anchor="middle" fill="#34d399" font-size="8" opacity="0.4" font-family="system-ui">OFF ZONE</text>
+        </g>
+
+        <!-- CLICK CAPTURE LAYER (above decorations, below markers) -->
+        <rect id="ice-click-layer" x="8" y="8" width="584" height="264" rx="26"/>
+
+        <!-- MARKERS LAYER -->
+        <g id="markers-layer"></g>
+      </svg>
+    </div>
+    <div id="controls-bar">
+      <button class="ctrl-btn" onclick="clearLastMarker()">↩ Undo Last</button>
+      <button class="ctrl-btn danger" onclick="clearAllMarkers()">✕ Clear Markers</button>
+      <button class="ctrl-btn" onclick="exportStats()">⬇ Export CSV</button>
+      <span id="event-count">0 events</span>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER STATS MODAL -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <div id="modal-header">
+      <div id="modal-title"></div>
+      <button id="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const STAT_TYPES = [
+  { key: 'goal',       label: 'Goal',          icon: '🥅', color: '#fbbf24' },
+  { key: 'shot',       label: 'Shot on Goal',  icon: '🎯', color: '#60a5fa' },
+  { key: 'hit',        label: 'Hit',           icon: '💥', color: '#fb923c' },
+  { key: 'turnover',   label: 'Turnover',      icon: '↓',  color: '#c084fc' },
+  { key: 'takeaway',   label: 'Takeaway',      icon: '↑',  color: '#34d399' },
+  { key: 'blocked',    label: 'Blocked Shot',  icon: '🛡',  color: '#22d3ee' },
+  { key: 'penalty',    label: 'Penalty',       icon: '⚑',  color: '#f87171' },
+  { key: 'faceoff_w',  label: 'Face-off Win',  icon: 'W',  color: '#4ade80' },
+  { key: 'faceoff_l',  label: 'Face-off Loss', icon: 'L',  color: '#f87171' },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const STATE = {
+  teams: {
+    home: { name: 'Home', players: [] },
+    away: { name: 'Away', players: [] },
+  },
+  selectedPlayerId: null,
+  selectedTeam: null,
+  selectedStat: null,
+  events: [],
+  nextId: 1,
+};
+
+let editingPlayerId = null;
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function uid() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function getTeamColor(team) {
+  return team === 'home' ? '#3b82f6' : '#ef4444';
+}
+
+function getZone(x, team) {
+  // From home team perspective: left is defensive, right is offensive
+  if (team === 'home') {
+    if (x < 172) return 'Def Zone';
+    if (x > 428) return 'Off Zone';
+    return 'Neutral';
+  } else {
+    if (x > 428) return 'Def Zone';
+    if (x < 172) return 'Off Zone';
+    return 'Neutral';
+  }
+}
+
+function zoneClass(zone) {
+  if (zone === 'Def Zone') return 'zone-d';
+  if (zone === 'Off Zone') return 'zone-o';
+  return 'zone-n';
+}
+
+function getStatDef(key) {
+  return STAT_TYPES.find(s => s.key === key);
+}
+
+function now() {
+  const d = new Date();
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+// ── RENDERING: ROSTER ──────────────────────────────────────────────────────
+function renderRoster(team) {
+  const players = STATE.teams[team].players;
+  const el = document.getElementById('roster-' + team);
+  const color = getTeamColor(team);
+
+  if (players.length === 0) {
+    el.innerHTML = `<div style="padding:6px 14px; font-size:11px; color:var(--text-muted)">No players — click + Add</div>`;
+    return;
+  }
+
+  el.innerHTML = players.map(p => {
+    const isSelected = STATE.selectedPlayerId === p.id;
+    if (editingPlayerId === p.id) {
+      return `<div class="inline-form" id="edit-form-${p.id}">
+        <input class="num" id="edit-num-${p.id}" value="${esc(p.number)}" maxlength="2" placeholder="#" />
+        <input class="name" id="edit-name-${p.id}" value="${esc(p.name)}" maxlength="30" placeholder="Name" />
+        <button class="btn-confirm" onclick="confirmEdit('${p.id}','${team}')">✓</button>
+        <button class="btn-cancel" onclick="cancelEdit()">✕</button>
+      </div>`;
+    }
+    return `<div class="player-item ${isSelected ? 'selected ' + team : ''}"
+        onclick="selectPlayer('${p.id}','${team}')">
+      <div class="jersey-badge" style="background:${color}22; color:${color}; border:1px solid ${color}44">#${esc(p.number)}</div>
+      <div class="player-name" title="${esc(p.name)}">${esc(p.name)}</div>
+      <div class="player-actions">
+        <button class="icon-btn" title="Stats" onclick="event.stopPropagation(); openModal('${p.id}')">📊</button>
+        <button class="icon-btn" title="Edit" onclick="event.stopPropagation(); startEdit('${p.id}')">✏️</button>
+        <button class="icon-btn danger" title="Delete" onclick="event.stopPropagation(); deletePlayer('${p.id}','${team}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAllRosters() {
+  renderRoster('home');
+  renderRoster('away');
+}
+
+// ── RENDERING: STAT BUTTONS ────────────────────────────────────────────────
+function renderStatButtons() {
+  const grid = document.getElementById('stat-grid');
+  grid.innerHTML = STAT_TYPES.map(s => `
+    <button class="stat-btn ${STATE.selectedStat === s.key ? 'active' : ''}"
+        onclick="selectStat('${s.key}')" title="${s.label}">
+      <span class="stat-icon">${s.icon}</span>${s.label}
+    </button>`).join('');
+}
+
+// ── RENDERING: STATUS STRIP ────────────────────────────────────────────────
+function renderStatus() {
+  const strip = document.getElementById('status-strip');
+  const player = STATE.selectedPlayerId
+    ? findPlayer(STATE.selectedPlayerId, STATE.selectedTeam)
+    : null;
+  const stat = STATE.selectedStat ? getStatDef(STATE.selectedStat) : null;
+  const teamColor = STATE.selectedTeam ? getTeamColor(STATE.selectedTeam) : '#64748b';
+  const teamName = STATE.selectedTeam ? STATE.teams[STATE.selectedTeam].name : '';
+
+  let html = '';
+
+  if (!player && !stat) {
+    html = `<span style="color:var(--text-muted)">Select a player, then a stat type, then click the ice to log an event.</span>`;
+  } else {
+    if (player) {
+      html += `<span class="status-chip" style="background:${teamColor}22; border-color:${teamColor}44; color:${teamColor}">
+        #${esc(player.number)} ${esc(player.name)} <span style="opacity:.6">(${esc(teamName)})</span>
+      </span>`;
+    } else {
+      html += `<span class="status-chip" style="color:var(--text-muted)">← select player</span>`;
+    }
+    html += `<span class="status-arrow">›</span>`;
+    if (stat) {
+      html += `<span class="status-chip" style="background:${stat.color}22; border-color:${stat.color}44; color:${stat.color}">
+        ${stat.icon} ${stat.label}
+      </span>`;
+    } else {
+      html += `<span class="status-chip" style="color:var(--text-muted)">← select stat</span>`;
+    }
+    if (player && stat) {
+      html += `<span class="status-hint">▸ Click the ice to place event</span>`;
+    }
+  }
+
+  strip.innerHTML = html;
+}
+
+// ── RENDERING: FEED ────────────────────────────────────────────────────────
+function renderFeed() {
+  const list = document.getElementById('feed-list');
+  if (STATE.events.length === 0) {
+    list.innerHTML = `<li class="feed-empty">No events yet.<br/>Select a player, a stat, and click the rink.</li>`;
+    return;
+  }
+  const reversed = [...STATE.events].reverse().slice(0, 80);
+  list.innerHTML = reversed.map(ev => {
+    const stat = getStatDef(ev.stat);
+    const zc = zoneClass(ev.zone);
+    const teamColor = getTeamColor(ev.team);
+    return `<li class="feed-item">
+      <div class="feed-row1">
+        <span class="feed-stat-badge" style="color:${stat.color}">${stat.icon} ${stat.label}</span>
+        <span class="feed-player" style="color:${teamColor}">#${esc(ev.playerNumber)} ${esc(ev.playerName)}</span>
+        <span class="feed-time">${ev.timeLabel}</span>
+      </div>
+      <div class="feed-row2"><span class="${zc}">${ev.zone}</span></div>
+    </li>`;
+  }).join('');
+  document.getElementById('event-count').textContent = `${STATE.events.length} event${STATE.events.length !== 1 ? 's' : ''}`;
+}
+
+function prependFeedItem(ev) {
+  const list = document.getElementById('feed-list');
+  const empty = list.querySelector('.feed-empty');
+  if (empty) empty.remove();
+
+  const stat = getStatDef(ev.stat);
+  const zc = zoneClass(ev.zone);
+  const teamColor = getTeamColor(ev.team);
+  const li = document.createElement('li');
+  li.className = 'feed-item';
+  li.innerHTML = `
+    <div class="feed-row1">
+      <span class="feed-stat-badge" style="color:${stat.color}">${stat.icon} ${stat.label}</span>
+      <span class="feed-player" style="color:${teamColor}">#${esc(ev.playerNumber)} ${esc(ev.playerName)}</span>
+      <span class="feed-time">${ev.timeLabel}</span>
+    </div>
+    <div class="feed-row2"><span class="${zc}">${ev.zone}</span></div>`;
+  list.insertBefore(li, list.firstChild);
+  document.getElementById('event-count').textContent = `${STATE.events.length} event${STATE.events.length !== 1 ? 's' : ''}`;
+}
+
+// ── PLAYER ACTIONS ─────────────────────────────────────────────────────────
+function startAddPlayer(team) {
+  const formEl = document.getElementById('add-form-' + team);
+  formEl.innerHTML = `<div class="inline-form">
+    <input class="num" id="new-num-${team}" maxlength="2" placeholder="#" type="number" min="1" max="99" />
+    <input class="name" id="new-name-${team}" maxlength="30" placeholder="Player name" />
+    <button class="btn-confirm" onclick="confirmAddPlayer('${team}')">✓</button>
+    <button class="btn-cancel" onclick="cancelAddPlayer('${team}')">✕</button>
+  </div>`;
+  document.getElementById('new-name-' + team).focus();
+  document.getElementById('new-num-' + team).addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddPlayer(team); });
+  document.getElementById('new-name-' + team).addEventListener('keydown', e => { if (e.key === 'Enter') confirmAddPlayer(team); });
+}
+
+function cancelAddPlayer(team) {
+  document.getElementById('add-form-' + team).innerHTML = '';
+}
+
+function confirmAddPlayer(team) {
+  const num = document.getElementById('new-num-' + team).value.trim();
+  const name = document.getElementById('new-name-' + team).value.trim();
+  if (!name) { alert('Player name required.'); return; }
+  if (!num || isNaN(num) || +num < 0 || +num > 99) { alert('Jersey number must be 0–99.'); return; }
+  const exists = STATE.teams[team].players.some(p => p.number === num);
+  if (exists && !confirm(`#${num} already exists on this team. Add anyway?`)) return;
+  STATE.teams[team].players.push({ id: uid(), name, number: num });
+  cancelAddPlayer(team);
+  renderRoster(team);
+}
+
+function startEdit(id) {
+  editingPlayerId = id;
+  renderAllRosters();
+  const team = findTeamForPlayer(id);
+  if (team) {
+    setTimeout(() => {
+      const inp = document.getElementById('edit-name-' + id);
+      if (inp) inp.focus();
+    }, 0);
+  }
+}
+
+function confirmEdit(id, team) {
+  const num = document.getElementById('edit-num-' + id).value.trim();
+  const name = document.getElementById('edit-name-' + id).value.trim();
+  if (!name) { alert('Player name required.'); return; }
+  if (!num || isNaN(num) || +num < 0 || +num > 99) { alert('Jersey number must be 0–99.'); return; }
+  const p = findPlayer(id, team);
+  if (p) { p.name = name; p.number = num; }
+  // Update events retroactively
+  STATE.events.forEach(ev => { if (ev.playerId === id) { ev.playerName = name; ev.playerNumber = num; } });
+  editingPlayerId = null;
+  renderRoster(team);
+  renderFeed();
+}
+
+function cancelEdit() {
+  editingPlayerId = null;
+  renderAllRosters();
+}
+
+function deletePlayer(id, team) {
+  if (!confirm('Delete this player and all their events?')) return;
+  STATE.teams[team].players = STATE.teams[team].players.filter(p => p.id !== id);
+  // Remove markers
+  STATE.events = STATE.events.filter(ev => {
+    if (ev.playerId === id) {
+      const marker = document.querySelector(`[data-event-id="${ev.id}"]`);
+      if (marker) marker.remove();
+      return false;
+    }
+    return true;
+  });
+  if (STATE.selectedPlayerId === id) {
+    STATE.selectedPlayerId = null;
+    STATE.selectedTeam = null;
+  }
+  renderRoster(team);
+  renderFeed();
+  renderStatus();
+}
+
+function selectPlayer(id, team) {
+  if (editingPlayerId) return;
+  STATE.selectedPlayerId = id;
+  STATE.selectedTeam = team;
+  renderAllRosters();
+  renderStatus();
+}
+
+function selectStat(key) {
+  STATE.selectedStat = key;
+  renderStatButtons();
+  renderStatus();
+}
+
+// ── FIND HELPERS ───────────────────────────────────────────────────────────
+function findPlayer(id, team) {
+  if (team) return STATE.teams[team].players.find(p => p.id === id);
+  for (const t of ['home', 'away']) {
+    const p = STATE.teams[t].players.find(p => p.id === id);
+    if (p) return p;
+  }
+  return null;
+}
+
+function findTeamForPlayer(id) {
+  for (const t of ['home', 'away']) {
+    if (STATE.teams[t].players.find(p => p.id === id)) return t;
+  }
+  return null;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── ICE CLICK ──────────────────────────────────────────────────────────────
+document.getElementById('ice-click-layer').addEventListener('click', function(e) {
+  if (!STATE.selectedPlayerId || !STATE.selectedStat) {
+    showNudge(!STATE.selectedPlayerId ? 'Select a player first!' : 'Select a stat type first!');
+    return;
+  }
+
+  const svg = document.getElementById('rink-svg');
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX; pt.y = e.clientY;
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return;
+  const svgPt = pt.matrixTransform(ctm.inverse());
+
+  const player = findPlayer(STATE.selectedPlayerId, STATE.selectedTeam);
+  if (!player) return;
+
+  const ev = {
+    id: STATE.nextId++,
+    playerId: player.id,
+    playerName: player.name,
+    playerNumber: player.number,
+    team: STATE.selectedTeam,
+    stat: STATE.selectedStat,
+    x: Math.round(svgPt.x),
+    y: Math.round(svgPt.y),
+    zone: getZone(svgPt.x, STATE.selectedTeam),
+    timeLabel: now(),
+  };
+
+  STATE.events.push(ev);
+  placeMarker(ev);
+  prependFeedItem(ev);
+});
+
+function showNudge(msg) {
+  const strip = document.getElementById('status-strip');
+  const orig = strip.innerHTML;
+  strip.innerHTML = `<span style="color:#fbbf24; font-weight:600">⚠ ${msg}</span>`;
+  setTimeout(() => { strip.innerHTML = orig; }, 1500);
+}
+
+// ── MARKER PLACEMENT ───────────────────────────────────────────────────────
+function placeMarker(ev) {
+  const layer = document.getElementById('markers-layer');
+  const stat = getStatDef(ev.stat);
+  const teamColor = getTeamColor(ev.team);
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('class', 'stat-marker');
+  g.setAttribute('data-event-id', ev.id);
+  g.setAttribute('transform', `translate(${ev.x},${ev.y})`);
+  g.style.opacity = '0';
+  g.innerHTML = markerSVG(ev.stat, stat, teamColor, ev);
+  layer.appendChild(g);
+  requestAnimationFrame(() => { g.style.transition = 'opacity .2s'; g.style.opacity = '1'; });
+
+  g.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showMarkerTooltip(ev, g);
+  });
+}
+
+function markerSVG(key, stat, teamColor, ev) {
+  const title = `<title>#${ev.playerNumber} ${ev.playerName} — ${stat.label} (${ev.zone}) ${ev.timeLabel}</title>`;
+  switch (key) {
+    case 'goal':
+      return `${title}<circle r="8" fill="${stat.color}" opacity=".9"/><text text-anchor="middle" dominant-baseline="central" font-size="10" fill="#000">★</text>`;
+    case 'shot':
+      return `${title}<circle r="6" fill="${teamColor}" opacity=".85"/><circle r="2" fill="white" opacity=".7"/>`;
+    case 'hit':
+      return `${title}<rect x="-6" y="-6" width="12" height="12" rx="2" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="10" fill="#000" font-weight="bold">✕</text>`;
+    case 'turnover':
+      return `${title}<circle r="6" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="9" fill="#000" font-weight="bold">▼</text>`;
+    case 'takeaway':
+      return `${title}<circle r="6" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="9" fill="#000" font-weight="bold">▲</text>`;
+    case 'blocked':
+      return `${title}<rect x="-6" y="-6" width="12" height="12" rx="1" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="8" fill="#000" font-weight="bold">B</text>`;
+    case 'penalty':
+      return `${title}<circle r="6" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="9" fill="#fff" font-weight="bold">P</text>`;
+    case 'faceoff_w':
+      return `${title}<circle r="6" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="8" fill="#000" font-weight="bold">W</text>`;
+    case 'faceoff_l':
+      return `${title}<circle r="6" fill="${stat.color}" opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size="8" fill="#fff" font-weight="bold">L</text>`;
+    default:
+      return `${title}<circle r="5" fill="${teamColor}" opacity=".8"/>`;
+  }
+}
+
+function showMarkerTooltip(ev, g) {
+  // Flash marker
+  g.style.filter = 'brightness(1.5)';
+  setTimeout(() => { g.style.filter = ''; }, 300);
+}
+
+// ── CONTROLS ───────────────────────────────────────────────────────────────
+function clearLastMarker() {
+  if (STATE.events.length === 0) return;
+  const ev = STATE.events.pop();
+  const marker = document.querySelector(`[data-event-id="${ev.id}"]`);
+  if (marker) marker.remove();
+  renderFeed();
+}
+
+function clearAllMarkers() {
+  if (STATE.events.length === 0) return;
+  if (!confirm('Clear all markers and events?')) return;
+  STATE.events = [];
+  document.getElementById('markers-layer').innerHTML = '';
+  renderFeed();
+}
+
+function exportStats() {
+  if (STATE.events.length === 0) { alert('No events to export.'); return; }
+  const header = 'Time,Team,#,Player,Stat,Zone,X,Y';
+  const rows = STATE.events.map(ev =>
+    [ev.timeLabel, ev.team, ev.playerNumber, `"${ev.playerName}"`,
+     getStatDef(ev.stat).label, ev.zone, ev.x, ev.y].join(','));
+  const csv = [header, ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
+  a.download = 'hockey-stats.csv';
+  a.click();
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────
+function openModal(playerId) {
+  const team = findTeamForPlayer(playerId);
+  const player = findPlayer(playerId, team);
+  if (!player) return;
+
+  const events = STATE.events.filter(ev => ev.playerId === playerId);
+  const teamColor = getTeamColor(team);
+  const teamName = STATE.teams[team].name;
+
+  document.getElementById('modal-title').innerHTML =
+    `<span style="color:${teamColor}">#${esc(player.number)}</span> ${esc(player.name)} <span style="font-size:12px; color:var(--text-muted); font-weight:400">(${esc(teamName)})</span>`;
+
+  // Summary counts
+  const counts = {};
+  STAT_TYPES.forEach(s => { counts[s.key] = 0; });
+  events.forEach(ev => { counts[ev.stat] = (counts[ev.stat] || 0) + 1; });
+
+  const nonZero = STAT_TYPES.filter(s => counts[s.key] > 0);
+  let summaryHtml = '';
+  if (nonZero.length > 0) {
+    summaryHtml = `<div class="stat-summary-grid">${nonZero.map(s =>
+      `<div class="summary-card">
+        <div class="sc-num" style="color:${s.color}">${counts[s.key]}</div>
+        <div class="sc-label">${s.label}</div>
+      </div>`).join('')}</div>`;
+  }
+
+  let tableHtml = '';
+  if (events.length === 0) {
+    tableHtml = `<div class="no-stats">No events logged for this player yet.</div>`;
+  } else {
+    const rows = [...events].reverse().map(ev => {
+      const s = getStatDef(ev.stat);
+      const zc = zoneClass(ev.zone);
+      return `<tr>
+        <td>${ev.timeLabel}</td>
+        <td><span style="color:${s.color}">${s.icon} ${s.label}</span></td>
+        <td class="${zc}">${ev.zone}</td>
+        <td style="color:var(--text-muted)">${ev.x}, ${ev.y}</td>
+      </tr>`;
+    }).join('');
+    tableHtml = `<table class="modal-table">
+      <thead><tr><th>Time</th><th>Stat</th><th>Zone</th><th>Coords</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  document.getElementById('modal-body').innerHTML = summaryHtml + tableHtml;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay') && e.target !== document.getElementById('modal-close')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ── TEAM NAME EDIT ─────────────────────────────────────────────────────────
+document.getElementById('home-team-name').addEventListener('input', function() {
+  STATE.teams.home.name = this.value || 'Home';
+  renderStatus();
+});
+document.getElementById('away-team-name').addEventListener('input', function() {
+  STATE.teams.away.name = this.value || 'Away';
+  renderStatus();
+});
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+function init() {
+  // Seed some default players
+  STATE.teams.home.players = [
+    { id: uid(), name: 'Connor McDavid', number: '97' },
+    { id: uid(), name: 'Leon Draisaitl', number: '29' },
+    { id: uid(), name: 'Zach Hyman', number: '18' },
+  ];
+  STATE.teams.away.players = [
+    { id: uid(), name: 'Nathan MacKinnon', number: '29' },
+    { id: uid(), name: 'Mikko Rantanen', number: '96' },
+    { id: uid(), name: 'Cale Makar', number: '8' },
+  ];
+  renderAllRosters();
+  renderStatButtons();
+  renderFeed();
+  renderStatus();
+}
+
+init();
+</script>
+</body>
+</html>
