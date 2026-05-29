@@ -284,77 +284,86 @@
       <svg id="rink-svg" viewBox="0 0 610 286" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
         <g class="rink-deco">
           <rect x="0" y="0" width="610" height="286" fill="#0a0e1a"/>
-          <!-- Ice -->
+
+          <!-- ICE SURFACE -->
           <rect x="5" y="5" width="600" height="276" rx="30" fill="#ddeef8" stroke="#555" stroke-width="3"/>
 
-          <!-- HIGH DANGER ZONES (semi-transparent, both ends) -->
-          <!-- Left HDZ: trapezoid from goal line outward -->
-          <polygon points="66,126 66,160 172,214 172,72" fill="#ff440018" stroke="#ff6600" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.85"/>
-          <!-- Right HDZ: mirror -->
-          <polygon points="544,126 544,160 438,214 438,72" fill="#ff440018" stroke="#ff6600" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.85"/>
-          <!-- HDZ label left -->
-          <text x="100" y="144" text-anchor="middle" font-size="7" fill="#ff6600" opacity="0.7" font-family="system-ui" font-weight="700">HIGH</text>
-          <text x="100" y="153" text-anchor="middle" font-size="7" fill="#ff6600" opacity="0.7" font-family="system-ui" font-weight="700">DANGER</text>
-          <!-- HDZ label right -->
-          <text x="510" y="144" text-anchor="middle" font-size="7" fill="#ff6600" opacity="0.7" font-family="system-ui" font-weight="700">HIGH</text>
-          <text x="510" y="153" text-anchor="middle" font-size="7" fill="#ff6600" opacity="0.7" font-family="system-ui" font-weight="700">DANGER</text>
+          <!-- ══ HIGH DANGER ZONES ══
+               Trapezoid: narrow at net posts (y=126–160) widening to near-boards
+               at the blue line (x=197/413). Lines trace from goal-post corners
+               to the boards — matching the reference image exactly. -->
+          <polygon points="66,126 66,160 197,268 197,18"
+            fill="#ff44001a" stroke="#ff6600" stroke-width="2" stroke-dasharray="7 4"/>
+          <polygon points="544,126 544,160 413,268 413,18"
+            fill="#ff44001a" stroke="#ff6600" stroke-width="2" stroke-dasharray="7 4"/>
+          <text x="118" y="140" text-anchor="middle" font-size="7.5" fill="#ff6600"
+            opacity="0.75" font-family="system-ui" font-weight="700">HIGH</text>
+          <text x="118" y="150" text-anchor="middle" font-size="7.5" fill="#ff6600"
+            opacity="0.75" font-family="system-ui" font-weight="700">DANGER</text>
+          <text x="492" y="140" text-anchor="middle" font-size="7.5" fill="#ff6600"
+            opacity="0.75" font-family="system-ui" font-weight="700">HIGH</text>
+          <text x="492" y="150" text-anchor="middle" font-size="7.5" fill="#ff6600"
+            opacity="0.75" font-family="system-ui" font-weight="700">DANGER</text>
 
           <!-- GOAL LINES -->
           <line x1="66" y1="18" x2="66" y2="268" stroke="#c00" stroke-width="2.5"/>
           <line x1="544" y1="18" x2="544" y2="268" stroke="#c00" stroke-width="2.5"/>
 
-          <!-- BLUE LINES -->
-          <line x1="183" y1="5" x2="183" y2="281" stroke="#2255cc" stroke-width="5"/>
-          <line x1="427" y1="5" x2="427" y2="281" stroke="#2255cc" stroke-width="5"/>
+          <!-- BLUE LINES — 32% from each end matching reference proportions -->
+          <line x1="197" y1="5" x2="197" y2="281" stroke="#2255cc" stroke-width="5"/>
+          <line x1="413" y1="5" x2="413" y2="281" stroke="#2255cc" stroke-width="5"/>
 
           <!-- CENTER RED LINE -->
           <line x1="305" y1="5" x2="305" y2="281" stroke="#c00" stroke-width="3.5"/>
           <line x1="305" y1="5" x2="305" y2="281" stroke="#ddeef8" stroke-width="1" stroke-dasharray="12 8"/>
 
-          <!-- LEFT FACE-OFF CIRCLES -->
-          <circle cx="111" cy="90" r="35" fill="none" stroke="#c00" stroke-width="2"/>
-          <circle cx="111" cy="90" r="3.5" fill="#c00"/>
-          <line x1="101" y1="84" x2="101" y2="96" stroke="#c00" stroke-width="2"/>
-          <line x1="121" y1="84" x2="121" y2="96" stroke="#c00" stroke-width="2"/>
-          <line x1="105" y1="80" x2="117" y2="80" stroke="#c00" stroke-width="2"/>
-          <line x1="105" y1="100" x2="117" y2="100" stroke="#c00" stroke-width="2"/>
-          <circle cx="111" cy="196" r="35" fill="none" stroke="#c00" stroke-width="2"/>
-          <circle cx="111" cy="196" r="3.5" fill="#c00"/>
-          <line x1="101" y1="190" x2="101" y2="202" stroke="#c00" stroke-width="2"/>
-          <line x1="121" y1="190" x2="121" y2="202" stroke="#c00" stroke-width="2"/>
-          <line x1="105" y1="186" x2="117" y2="186" stroke="#c00" stroke-width="2"/>
-          <line x1="105" y1="206" x2="117" y2="206" stroke="#c00" stroke-width="2"/>
+          <!-- ══ LEFT END FACE-OFF CIRCLES ══
+               cx=119 (20% from left), cy=80/206 (27%/73% height), r=48 (~15ft scaled) -->
+          <circle cx="119" cy="80"  r="48" fill="none" stroke="#c00" stroke-width="2"/>
+          <circle cx="119" cy="80"  r="4"  fill="#c00"/>
+          <line x1="109" y1="74"  x2="109" y2="86"  stroke="#c00" stroke-width="2"/>
+          <line x1="129" y1="74"  x2="129" y2="86"  stroke="#c00" stroke-width="2"/>
+          <line x1="113" y1="70"  x2="125" y2="70"  stroke="#c00" stroke-width="2"/>
+          <line x1="113" y1="90"  x2="125" y2="90"  stroke="#c00" stroke-width="2"/>
 
-          <!-- RIGHT FACE-OFF CIRCLES -->
-          <circle cx="499" cy="90" r="35" fill="none" stroke="#c00" stroke-width="2"/>
-          <circle cx="499" cy="90" r="3.5" fill="#c00"/>
-          <line x1="489" y1="84" x2="489" y2="96" stroke="#c00" stroke-width="2"/>
-          <line x1="509" y1="84" x2="509" y2="96" stroke="#c00" stroke-width="2"/>
-          <line x1="493" y1="80" x2="505" y2="80" stroke="#c00" stroke-width="2"/>
-          <line x1="493" y1="100" x2="505" y2="100" stroke="#c00" stroke-width="2"/>
-          <circle cx="499" cy="196" r="35" fill="none" stroke="#c00" stroke-width="2"/>
-          <circle cx="499" cy="196" r="3.5" fill="#c00"/>
-          <line x1="489" y1="190" x2="489" y2="202" stroke="#c00" stroke-width="2"/>
-          <line x1="509" y1="190" x2="509" y2="202" stroke="#c00" stroke-width="2"/>
-          <line x1="493" y1="186" x2="505" y2="186" stroke="#c00" stroke-width="2"/>
-          <line x1="493" y1="206" x2="505" y2="206" stroke="#c00" stroke-width="2"/>
+          <circle cx="119" cy="206" r="48" fill="none" stroke="#c00" stroke-width="2"/>
+          <circle cx="119" cy="206" r="4"  fill="#c00"/>
+          <line x1="109" y1="200" x2="109" y2="212" stroke="#c00" stroke-width="2"/>
+          <line x1="129" y1="200" x2="129" y2="212" stroke="#c00" stroke-width="2"/>
+          <line x1="113" y1="196" x2="125" y2="196" stroke="#c00" stroke-width="2"/>
+          <line x1="113" y1="216" x2="125" y2="216" stroke="#c00" stroke-width="2"/>
 
-          <!-- NEUTRAL ZONE DOTS -->
-          <circle cx="183" cy="90" r="4" fill="#c00"/>
-          <circle cx="183" cy="196" r="4" fill="#c00"/>
-          <circle cx="427" cy="90" r="4" fill="#c00"/>
-          <circle cx="427" cy="196" r="4" fill="#c00"/>
+          <!-- ══ RIGHT END FACE-OFF CIRCLES ══  cx=491 (mirror of 119) -->
+          <circle cx="491" cy="80"  r="48" fill="none" stroke="#c00" stroke-width="2"/>
+          <circle cx="491" cy="80"  r="4"  fill="#c00"/>
+          <line x1="481" y1="74"  x2="481" y2="86"  stroke="#c00" stroke-width="2"/>
+          <line x1="501" y1="74"  x2="501" y2="86"  stroke="#c00" stroke-width="2"/>
+          <line x1="485" y1="70"  x2="497" y2="70"  stroke="#c00" stroke-width="2"/>
+          <line x1="485" y1="90"  x2="497" y2="90"  stroke="#c00" stroke-width="2"/>
 
-          <!-- CENTER CIRCLE -->
-          <circle cx="305" cy="143" r="50" fill="none" stroke="#2255cc" stroke-width="2.5"/>
-          <circle cx="305" cy="143" r="4" fill="#c00"/>
+          <circle cx="491" cy="206" r="48" fill="none" stroke="#c00" stroke-width="2"/>
+          <circle cx="491" cy="206" r="4"  fill="#c00"/>
+          <line x1="481" y1="200" x2="481" y2="212" stroke="#c00" stroke-width="2"/>
+          <line x1="501" y1="200" x2="501" y2="212" stroke="#c00" stroke-width="2"/>
+          <line x1="485" y1="196" x2="497" y2="196" stroke="#c00" stroke-width="2"/>
+          <line x1="485" y1="216" x2="497" y2="216" stroke="#c00" stroke-width="2"/>
+
+          <!-- NEUTRAL ZONE FACE-OFF DOTS (aligned to blue lines) -->
+          <circle cx="197" cy="80"  r="4" fill="#c00"/>
+          <circle cx="197" cy="206" r="4" fill="#c00"/>
+          <circle cx="413" cy="80"  r="4" fill="#c00"/>
+          <circle cx="413" cy="206" r="4" fill="#c00"/>
+
+          <!-- CENTER CIRCLE (blue, r=48 matching face-off circles) -->
+          <circle cx="305" cy="143" r="48" fill="none" stroke="#2255cc" stroke-width="2.5"/>
+          <circle cx="305" cy="143" r="4"  fill="#c00"/>
           <line x1="293" y1="137" x2="293" y2="149" stroke="#c00" stroke-width="2"/>
           <line x1="317" y1="137" x2="317" y2="149" stroke="#c00" stroke-width="2"/>
 
-          <!-- LEFT CREASE -->
-          <path d="M 66 120 A 26 26 0 0 1 66 166 Z" fill="#b8d4f0" stroke="#2255cc" stroke-width="1.8"/>
-          <!-- RIGHT CREASE -->
-          <path d="M 544 120 A 26 26 0 0 0 544 166 Z" fill="#b8d4f0" stroke="#2255cc" stroke-width="1.8"/>
+          <!-- LEFT GOAL CREASE — D-shape matching net post height exactly -->
+          <path d="M 66 126 A 17 17 0 0 1 66 160 Z" fill="#b8d4f0" stroke="#2255cc" stroke-width="1.8"/>
+          <!-- RIGHT GOAL CREASE -->
+          <path d="M 544 126 A 17 17 0 0 0 544 160 Z" fill="#b8d4f0" stroke="#2255cc" stroke-width="1.8"/>
 
           <!-- LEFT NET -->
           <rect x="35" y="126" width="31" height="34" rx="2" fill="#e8e8e8" stroke="#555" stroke-width="1.5"/>
@@ -379,7 +388,7 @@
           <!-- REFEREE CREASE -->
           <path d="M 288 281 A 17 17 0 0 1 322 281" fill="none" stroke="#c00" stroke-width="1.8"/>
 
-          <!-- RINK BORDER -->
+          <!-- RINK BORDER (drawn last to crisp up rounded edges) -->
           <rect x="5" y="5" width="600" height="276" rx="30" fill="none" stroke="#444" stroke-width="3"/>
         </g>
 
@@ -456,8 +465,8 @@ const DEFAULT_STATS = [
 // ── HIGH DANGER ZONE POLYGONS ──────────────────────────────────────────────
 // Left HDZ: trapezoid from goal line (x=66) outward to x=172
 // Right HDZ: mirror
-const LEFT_HDZ  = [[66,126],[66,160],[172,214],[172,72]];
-const RIGHT_HDZ = [[544,126],[544,160],[438,214],[438,72]];
+const LEFT_HDZ  = [[66,126],[66,160],[197,268],[197,18]];
+const RIGHT_HDZ = [[544,126],[544,160],[413,268],[413,18]];
 
 function pointInPoly(x, y, poly) {
   let inside = false;
@@ -540,9 +549,9 @@ function getTeamColor(t) { return t === 'home' ? '#3b82f6' : '#ef4444'; }
 
 function getZone(x, team) {
   if (team === 'home') {
-    if (x < 183) return 'Def Zone'; if (x > 427) return 'Off Zone'; return 'Neutral';
+    if (x < 197) return 'Def Zone'; if (x > 413) return 'Off Zone'; return 'Neutral';
   } else {
-    if (x > 427) return 'Def Zone'; if (x < 183) return 'Off Zone'; return 'Neutral';
+    if (x > 413) return 'Def Zone'; if (x < 197) return 'Off Zone'; return 'Neutral';
   }
 }
 
